@@ -284,18 +284,24 @@ class DataPortal(object):
         self._first_trading_day = first_trading_day
 
         # Get the first trading minute
-        self._first_trading_minute, _ = (
-            self.trading_calendar.open_and_close_for_session(
-                self._first_trading_day
+        try:
+            self._first_trading_minute, _ = (
+                self.trading_calendar.open_and_close_for_session(
+                    self._first_trading_day
+                )
+                if self._first_trading_day is not None else (None, None)
             )
-            if self._first_trading_day is not None else (None, None)
-        )
+        except:
+            self._first_trading_minute = (None, None)
 
         # Store the locs of the first day and first minute
-        self._first_trading_day_loc = (
-            self.trading_calendar.all_sessions.get_loc(self._first_trading_day)
-            if self._first_trading_day is not None else None
-        )
+        try:
+            self._first_trading_day_loc = (
+                self.trading_calendar.all_sessions.get_loc(self._first_trading_day)
+                if self._first_trading_day is not None else None
+            )
+        except:
+            self._first_trading_day_loc = None
 
     def _ensure_reader_aligned(self, reader):
         if reader is None:

@@ -2,7 +2,9 @@ import collections
 import alpaca_trade_api as tradeapi
 from datetime import timedelta, time as dtime
 import numpy as np
-from os.path import join
+import csv
+from os import listdir, mkdir, remove, makedirs
+from os.path import exists, isfile, join, expandvars
 from pathlib import Path
 import pandas as pd
 import pytz
@@ -59,8 +61,19 @@ def list_assets():
             elif universe == Universe.NASDAQ100:
                 ASSETS = get_nasdaq100()
             ASSETS = list(set(ASSETS))
+        write_symbol_list(expandvars(conf.al['store_data_path']))
     return ASSETS
 
+def write_symbol_list(store_data_path):
+    import datetime
+
+    if not exists(store_data_path):
+        mkdir(store_data_path)
+    x = datetime.datetime.now()
+    store_data_filename = join(store_data_path, 'allsymbols_' + x.strftime("%Y%m%d") + '.txt')
+    with open(store_data_filename, 'w') as f:
+        for item in ASSETS:
+            f.write("%s\n" % item)
 
 def iso_date(date_str):
     """
@@ -249,6 +262,9 @@ def df_generator(interval, start, end, assets_to_sids):
                     if symbol not in already_ingested:
                         first_traded = start
                         auto_close_date = end + pd.Timedelta(days=1)
+
+                        store_symbol_records(symbol, df[symbol].sort_index())
+
                         yield (sid, df[symbol].sort_index()), symbol, start, end, first_traded, auto_close_date, exchange
                         already_ingested[symbol] = True
 
@@ -257,6 +273,27 @@ def df_generator(interval, start, end, assets_to_sids):
                 traceback.print_exc()
                 print(f"error while processig {(sid + base_sid, symbol)}: {e}")
 
+def store_symbol_records(symbol, i_df):
+    import datetime
+
+    conf = config.bundle.AlpacaConfig()
+    x = datetime.datetime.now()
+    store_data_path = join(expandvars(conf.al['store_data_path']), x.strftime("%Y%m%d"), symbol[0])
+    if not exists(store_data_path):
+        makedirs(store_data_path)
+
+    i_df = i_df.astype({"volume": 'int64'})
+    i_df.index = pd.to_datetime(i_df.index, utc=True)
+    o_df = i_df.tz_localize(None)
+    o_df.index = o_df.index.normalize()
+    o_df.rename_axis('date', inplace=True)
+    store_data_filename = join(store_data_path, symbol + '.csv')
+    o_df.to_csv(store_data_filename)
+    # with open(store_data_filename, 'w') as f:
+    #     writer = csv.writer(f)
+    #     if index == 0:
+    #         writer.writerow(['Date', 'Open', 'High', 'Low', 'Close', 'Volume'])
+    #     writer.writerow(line)
 
 def metadata_df():
     metadata_dtype = [
@@ -327,6 +364,7 @@ if __name__ == '__main__':
 
     cal: TradingCalendar = trading_calendars.get_calendar('NYSE')
     end_date = pd.Timestamp('now', tz='utc').date() - timedelta(days=1)
+    # end_date = pd.Timestamp('2021-02-26', tz='utc').date() - timedelta(days=1)
     while not cal.is_session(end_date):
         end_date -= timedelta(days=1)
     end_date = pd.Timestamp(end_date, tz='utc')
@@ -335,10 +373,15 @@ if __name__ == '__main__':
     # while not cal.is_session(start_date):
     #     start_date += timedelta(days=1)
 
-    start_date = end_date - timedelta(days=365)
+    # start_date = end_date - timedelta(days=365)
+    # start_date = end_date - timedelta(days=1824)
+    # start_date = pd.Timestamp('2016-01-04', tz='utc')
+    start_date = pd.Timestamp('2021-02-25', tz='utc')
+
     while not cal.is_session(start_date):
         start_date -= timedelta(days=1)
 
+    print(f'Ingest between {start_date} and {end_date}')
     initialize_client()
 
     import time
