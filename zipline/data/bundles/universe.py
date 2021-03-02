@@ -17,6 +17,11 @@ class Universe(Enum):
 def all_alpaca_assets(client: alpaca_trade_api.REST) -> list:
     return [_.symbol for _ in client.list_assets()]
 
+def read_all_alpaca_assets(filename) -> list:
+    with open(filename) as f:
+        content = f.readlines()
+    # you may also want to remove whitespace characters like `\n` at the end of each line
+    return [x.strip() for x in content]
 
 def get_sp500() -> list:
     table = pd.read_html(SP500_WIKI_URL)
