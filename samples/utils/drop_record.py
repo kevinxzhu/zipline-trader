@@ -6,7 +6,7 @@ from os.path import exists, join
 @click.command()
 @click.option("--source", prompt="source csv file", help="full path of source csv file")
 @click.option("--dates", prompt="index[,index]", help="0-base index")
-def hello(source, dates):
+def process(source, dates):
     print(f'source path {source}')
     print(f'will be dropped records date {dates}')
     if not exists(source):
@@ -40,4 +40,4 @@ def hello(source, dates):
 
 
 if __name__ == '__main__':
-    hello()
+    process()

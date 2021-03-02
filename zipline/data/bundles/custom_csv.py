@@ -118,7 +118,8 @@ def df_generator(interval, start, end, assets_to_sids):
                     if symbol not in already_ingested:
                         first_traded = start
                         auto_close_date = end + pd.Timedelta(days=1)
-                        yield (sid, in_data.sort_index()), symbol, start, end, first_traded, auto_close_date, exchange
+                        out_data = in_data[start: end]
+                        yield (sid, out_data.sort_index()), symbol, start, end, first_traded, auto_close_date, exchange
                         already_ingested[symbol] = True
 
                     # in_data.index = pd.to_datetime(in_data.index, utc=True)
@@ -208,8 +209,8 @@ if __name__ == '__main__':
 
     # start_date = end_date - timedelta(days=365)
     # start_date = end_date - timedelta(days=1824)
-    start_date = pd.Timestamp('2016-01-04', tz='utc')
-    # start_date = pd.Timestamp('2021-02-25', tz='utc')
+    # start_date = pd.Timestamp('2016-01-04', tz='utc')
+    start_date = pd.Timestamp('2021-02-24', tz='utc')
 
     while not cal.is_session(start_date):
         start_date -= timedelta(days=1)
