@@ -36,14 +36,15 @@ def analyze(context, perf):
     ax1 = plt.subplot(211)
     perf.portfolio_value.plot(ax=ax1)
     ax2 = plt.subplot(212, sharex=ax1)
-    perf.sym.plot(ax=ax2, color='r')
+    # perf.sym.plot(ax=ax2, color='r')
     plt.gcf().set_size_inches(18, 8)
     plt.legend(['Algo', 'Benchmark'])
     plt.ylabel("Returns", color='black', size=25)
 
 
 if __name__ == '__main__':
-    bundle_name = 'alpaca_api'
+    # bundle_name = 'alpaca_api'
+    bundle_name = 'custom_csv'
     bundle_data = bundles.load(bundle_name)
 
     # Set the trading calendar
@@ -60,12 +61,13 @@ if __name__ == '__main__':
                       benchmark_returns=get_benchmark(symbol="SPY",
                                                       start=start.date().isoformat(),
                                                       end=end.date().isoformat()),
-                      bundle='alpaca_api',
+                    #   bundle='alpaca_api',
+                      bundle=bundle_name,
                       broker=None,
                       state_filename="./demo.state",
                       trading_calendar=trading_calendar,
                       before_trading_start=before_trading_start,
-                      #                   analyze=analyze,
+                                        #  analyze=analyze,
                       data_frequency='daily'
                       )
     fig, axes = plt.subplots(1, 1, figsize=(16, 5), sharex=True)

@@ -7,7 +7,22 @@ if CONFIG_PATH:
     with open(CONFIG_PATH, mode='r') as f:
         ZIPLINE_CONFIG = yaml.safe_load(f)
 
+class CustomCsvConfig:
+    if CONFIG_PATH:
+        ccsv = ZIPLINE_CONFIG["custom_csv"]
 
+    @property
+    def universe(self):
+        if CONFIG_PATH:
+            return self.ccsv["universe"]
+        else:
+            return os.environ.get('ZT_UNIVERSE')
+    @property
+    def custom_asset_list(self):
+        if CONFIG_PATH:
+            return self.ccsv["custom_asset_list"]
+        else:
+            return os.environ.get('ZT_CUSTOM_ASSET_LIST')
 class AlpacaConfig:
     if CONFIG_PATH:
         al = ZIPLINE_CONFIG["alpaca"]
